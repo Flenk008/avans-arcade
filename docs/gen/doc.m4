@@ -6,7 +6,8 @@ define(`docname',
 	       NAME, `gameplay', `Game design document',
 	       NAME, `architecture', `Architecture document',
 				 `UNKNOWN???'))dnl
-
+define(`abbreviations',`undivert(`abbreviations.con')')dnl
+dnl
 <!DOCTYPE html>
 <html lang="en-US">
 <link>
@@ -43,6 +44,7 @@ define(`docname',
 			Niels Stunnebrink <b>(2184532)</b>
 		</span>
 	</div>
+	ifelse(NAME, `architecture', `abbreviations', `')
 	<h1>Table of contents</h1>
 	undivert(NAME`.toc')
 	undivert(NAME`.con')

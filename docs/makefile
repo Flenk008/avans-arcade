@@ -5,7 +5,9 @@ CHROME = chromium --headless --run-all-compositor-stages-before-draw --virtual-t
 CURL = curl
 PUP = pup
 
-SRCS = $(wildcard *.md)
+SRCS += gameplay.md \
+				research.md \
+				architecture.md
 HTML_T = $(SRCS:.md=.html)
 PDF_T = $(SRCS:.md=.pdf)
 
@@ -22,8 +24,8 @@ gen/paged.polyfill.js:
 %.toc: %.md
 	$(PANDOC) $< -s --toc --to=html 2> /dev/null | $(PUP) '#TOC' | sed -r 's/<(.?)ul>/<\1ol>/g' > $@
 
-%.html: %.con %.toc gen/doc.m4 gen/paged.polyfill.js gen/style.css
-	$(M4) -Igen -DNAME=$(basename $<) gen/doc.m4 > $@
+%.html: %.con %.toc gen/doc.m4 gen/paged.polyfill.js gen/style.css abbreviations.con
+	$(M4) -Igen -I. -DNAME=$(basename $<) gen/doc.m4 > $@
 
 %.pdf: %.html
 	$(CHROME) --print-to-pdf=$@ $< 2> /dev/null

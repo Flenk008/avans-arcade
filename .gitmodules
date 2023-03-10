@@ -1,13 +1,13 @@
-[submodule "stm32/lib/STM32-base"]
-	path = stm32/lib/STM32-base
+[submodule "src/lib/STM32-base"]
+	path = src/lib/STM32-base
 	url = https://github.com/STM32-base/STM32-base
 	ignore = all
-[submodule "stm32/lib/STM32-base-STM32Cube"]
-	path = stm32/lib/STM32-base-STM32Cube
+[submodule "src/lib/STM32-base-STM32Cube"]
+	path = src/lib/STM32-base-STM32Cube
 	url = https://github.com/STM32-base/STM32-base-STM32Cube
 	ignore = all
-[submodule "stm32/lib/FreeRTOS-Kernel"]
-	path = stm32/lib/FreeRTOS-Kernel
+[submodule "src/lib/FreeRTOS-Kernel"]
+	path = src/lib/FreeRTOS-Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel
 	ignore = all
 	branch = V10.4.6

@@ -1,0 +1,47 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ppusim debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main",
+            "windows": { "program": "${workspaceFolder}/src/main.exe" },
+            "args": [],
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "client/build",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description":  "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "stm32 debug",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/src/main.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "stlink",
+            "preLaunchTask": "stm32/flash",
+            "linux": {
+                "stlinkPath": "/usr/bin/st-util"
+            },
+            "windows": {
+                "armToolchainPath": "C:/msys64/mingw64/bin",
+                "stlinkPath": "C:/msys64/mingw64/bin/st-util.exe",
+                "gdbPath": "C:/msys64/mingw64/bin/gdb-multiarch.exe"
+            }
+        }
+    ]
+}

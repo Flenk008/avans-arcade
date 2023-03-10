@@ -134,6 +134,12 @@ Notable differences:
   
   Our game doesn't need this capability for any visual effects. Leaving this
   feature out will lead to a simpler hardware design
+- Sprites are positioned relative to the viewport, not the background layer
+  
+  This leads to a simpler hardware architecture for the foreground sprite
+  rendering component. Since the CPU is already likely to reposition all
+  foreground sprites on every frame, the position calculation is moved to
+  hardware to software.
 
 ## Hardware design schematics
 
@@ -185,7 +191,7 @@ Important notes:
   for the foreground and background layer, these components will be combined
   into one for each layer respectively. They are separated in the above diagram
   for pipeline stage illustration.
-- The BAX, FAM, and PAL registers are implemented in the component that
+- The AUX, FAM, and PAL registers are implemented in the component that
   directly accesses them, but are exposed to the PPU RAM bus for writing.
 - Each foreground sprite render component holds its own sprite data copy from
   the RAM in it's own cache memory. The cache updates are fetched during the
@@ -222,44 +228,119 @@ Important notes:
 - All DATA and ADDR lines are shared between all RAM ports. WEN inputs are
   controlled by the address decoder.
 
-<!--
-
 ## Registers
 
-|Address|Size (bytes)|Alias|Description|
+- The PPU's memory bus has 16-bit addresses and 16-bit words.
+- Some memory regions use physical word sizes smaller than 16-bits, so
+  "unneeded" bits will be discarded by the PPU.
+- Apparent size means the amount of addresses in a given memory region. As
+  mentioned earlier, the exact word sizes of a memory area can vary, though
+  this is not visible to the CPU as all data is presented as 16-bit words.
+
+|Address offset|Apparent size|Alias|Description|
 |-|-|-|-|
-|`0x00000`|`0x00000`|TMM  |[tilemap memory][TMM]|
-|`0x00000`|`0x00000`|BAM  |[background attribute memory][BAM]|
-|`0x00000`|`0x00000`|FAM  |[foreground attribute memory][FAM]|
-|`0x00000`|`0x00000`|PAL  |[palettes][PAL]|
-|`0x00000`|`0x00000`|BAX  |[background auxiliary memory][BAX]|
+|`0x0000`|`0xd000`|TMM  |[tilemap memory][TMM]|
+|`0xd000`|`0x04b0`|BAM  |[background attribute memory][BAM]|
+|`0xd800`|`0x0100`|FAM  |[foreground attribute memory][FAM]|
+|`0xdc00`|`0x0040`|PAL  |[palettes][PAL]|
+|`0xde00`|`0x0002`|AUX  |[auxiliary memory][AUX]|
+
+This table contains the "official" PPU register offsets and sizes. Due to the
+way the address decoder works, some of these memory regions might be duplicated
+in the address ranges between the memory regions. This is considered undefined
+behavior, so the CPU should not attempt to write in these locations because
+there is no address validity checking.
 
 [TMM]: #tilemap-memory
 ### Tilemap memory
 
-- TODO: list format
+- Each sprite takes up 768 bits spread across 52 15-bit words (with one
+  discarded padding bit per word)
+- Pixel index order is from top-left to bottom-right in (English) reading
+  order.
+- Bits `14 downto 3` of the byte with the highest address for a given tile are
+  not used
+- To calculate TMM address $a$ for any given pixel $p$ of tile with index $t$,
+  compute $a=52*t+\left\lfloor\frac{p}{5}\right\rfloor$
+
+Word format:
+
+|Range (VHDL)|Description|
+|-|-|
+|`15`|(discarded)|
+|`14 downto 12`|pixel $n+4$|
+|`11 downto 9`|pixel $n+3$|
+|`8 downto 6`|pixel $n+2$|
+|`5 downto 3`|pixel $n+1$|
+|`2 downto 0`|pixel $n+0$|
+
 
 [BAM]: #background-attribute-memory
 ### Background attribute memory
 
-- TODO: list format
+- 15-bit words (MSB discarded in hardware)
+- Address indicates which background sprite is currently targeted in reading
+  order  
+  e.g. $\textrm{addr} = c000_{\textrm{hex}} + x + y*w$ where $x$ and $y$
+  are the background tile, and $w$ is the amount of horizontal tiles fit on the
+  background layer (40)
+
+Word format:
+
+|Range (VHDL)|Description|
+|-|-|
+|`15`|(discarded)|
+|`14`|Flip horizontally|
+|`13`|Flip vertically|
+|`12 downto 10`|Palette index for tile|
+|`9 downto 0`|Tilemap index|
 
 [FAM]: #foreground-attribute-memory
 ### Foreground attribute memory
 
-- TODO: list format
+- 32-bit words
+- Sprites with lower addresses are drawn "before" sprites with higher addresses
+
+Word format:
+
+|Range (VHDL)|Description|
+|-|-|
+|`31`|Flip horizontally|
+|`30`|Flip vertically|
+|`29 downto 21`|horizontal position (offset by -16)|
+|`20 downto 13`|vertical position (offset by -16)|
+|`12 downto 10`|Palette index for tile|
+|`9 downto 0`|Tilemap index|
 
 [PAL]: #palettes
 ### Palettes
 
-- TODO: list format
+- 12-bit words (4 MSB discarded in hardware)
+- Address formula for palette color is $p_i*8 + p_c$ where $p_i$ is the palette
+  index and $p_c$ is the color index within a given palette.
 
-[BAX]: #background-auxiliary-memory
-### Background auxiliary memory
+Word format:
 
-- background scrolling
+|Range (VHDL)|Description|
+|-|-|
+|`15 downto 12`|(discarded)|
+|`11 downto 8`|Red value|
+|`7 downto 4`|Green value|
+|`3 downto 0`|Blue value|
 
--->
+[AUX]: #auxiliary-memory
+### Auxiliary memory
+
+- no words
+
+Format:
+
+|Range (VHDL)|Description|
+|-|-|
+|`31 downto 18`|(unused)|
+|`17`|Fetch foreground sprites flag|
+|`16 downto 8`|Horizontal background scroll (offset from left edge)|
+|`7 downto 0`|Vertical background scroll (offset from top edge)|
 
 [custompputimings]: https://docs.google.com/spreadsheets/d/1MU6K4c4PtMR_JXIpc3I0ZJdLZNnoFO7G2P3olCz6LSc
 

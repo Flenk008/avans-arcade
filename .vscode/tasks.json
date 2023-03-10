@@ -1,0 +1,77 @@
+{
+	"version": "2.0.0",
+	"windows": {
+		"options": {
+			"cwd": "${workspaceFolder}",
+			"shell": {
+				"executable": "C:/msys64/msys2_shell.cmd",
+				"args": [ "-defterm", "-no-start", "-mingw64", "-shell", "sh", "-here", "-c" ]
+			},
+		},
+	},
+	"tasks": [
+		{
+			"label": "build",
+			"group": {
+				"isDefault": false,
+				"kind": "build"
+			},
+			"options": { "cwd": "${workspaceFolder}/src" },
+			"windows": {
+				"command": "make -j",
+				"args": [ "" ],
+			},
+			"command": "make",
+			"args": [ "-j" ],
+			"type": "shell"
+		},
+		{
+			"label": "flash",
+			"detail": "build and upload to stm32",
+			"group": {
+				"isDefault": false,
+				"kind": "test"
+			},
+			"options": { "cwd": "${workspaceFolder}/src" },
+			"windows": {
+				"command": "make -j flash",
+				"args": [ "" ],
+			},
+			"command": "make",
+			"args": [ "-j", "flash" ],
+			"type": "shell"
+		},
+		{
+			"label": "compiledb",
+			"detail": "generate editor autocomplete files",
+			"group": {
+				"isDefault": false,
+				"kind": "test"
+			},
+			"options": { "cwd": "${workspaceFolder}/src" },
+			"windows": {
+				"command": "make compile_commands.json",
+				"args": [ "" ],
+			},
+			"command": "make",
+			"args": [ "compile_commands" ],
+			"type": "shell"
+		},
+		{
+			"label": "clean",
+			"detail": "remove binary files from working directory",
+			"group": {
+				"isDefault": false,
+				"kind": "test"
+			},
+			"options": { "cwd": "${workspaceFolder}" },
+			"windows": {
+				"command": "make clean",
+				"args": [ "" ],
+			},
+			"command": "make",
+			"args": [ "clean" ],
+			"type": "shell"
+		}
+	]
+}
