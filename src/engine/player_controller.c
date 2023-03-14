@@ -4,9 +4,6 @@
 #include "engine/sprite_controller.h"
 #include "engine/player_controller.h"
 
-#include "demo.h"
-#include <stdio.h>
-
 #include "input.h"
 
 void hh_player_actions() {
@@ -49,11 +46,6 @@ void hh_player_actions() {
 	// if (g_hh_controller_p1.button_primary /*&& player.is_grounded*/) //JUMP
 	// 	player.vel.y += -6;
 	// // // if (g_hh_controller_p1.button_secondary)
-
-	// player.render.fam.palette_index = 7;
-	// player.render.fam.tilemap_index = 7;
-
-	// printf("%x ",player.render.fam.palette_index);
 
 	// player.vel.y += 1; //gravity
 
@@ -153,15 +145,6 @@ void hh_player_actions() {
 	player.render.fam.tilemap_index = 2;//TODO: these two lines should be redundant
 	player.render.fam.palette_index = 7;
 	hh_ppu_update_foreground(0, player.render.fam);
-
-
-	hh_s_ppu_loc_fam_entry sprite = {
-		.position_x = 16,
-		.position_y = 16,
-		.palette_index = 7,
-		.tilemap_index = 2,
-	};
-	hh_ppu_update_foreground(1, sprite);
 
 }
 
