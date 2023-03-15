@@ -35,7 +35,18 @@ To ensure a smooth and enjoyable gaming experience, it is essential to address a
 ### PPU communication
 ### APU communication
 ### level editing pipeline
+To create sprites the program to be used is aseprite, aseprite exports their
+sprite palette and puts them in our 2d map editor. For creating 2d levels were
+using Tiled as our 2d map editor. With this software, we can create and export
+our maps with our preferred technique. Indexed tilemaps are the technique we’re
+using to export our levels from the microcontroller to the FPGA.
 
+![Indexed color (above) and indexed tilemaps (below)](../assets/indexes.PNG)
+
+To index tiles from the tilemap, 10 bits will be used for both the foreground
+and background layers of the PPU. This means that the global tilemap can fit up
+to 1024 tiles in total, each being 16x16 pixels (the example uses 4x4 tiles for
+illustration purposes).
 ## FPGA (PPU)
 ### PPU
 ### SPI
@@ -48,10 +59,41 @@ To ensure a smooth and enjoyable gaming experience, it is essential to address a
 # design document (mid-low level)
 ## STM32
 ### game engine
+
+
+#### game loop
+![Game loop](../assets/GameLoop.png)
+The game loop is the backbone of any game. It is responsible for managing the game states, updating the game world, handling user input, and rendering the graphics. The game loop consists of five states: StartingScreen, Shop, Gameplay, GameOver, and HighScore. Each state has its own set of rules and actions, and the game will move from one state to another based on the user input and game events.
+
+
+##### startingscreen
+The StartingScreen state is the first state the player encounters when they launch the game or go from highscore to startingscreen. It will display the game title and the start button. When the start button is pressed, the game will move to the Shop state.
+
+##### shop
+The Shop state is where the player can buy upgrades/power-ups. The player will use the score they earned during gameplay to purchase these items. The Shop state will have a list of items the player can buy, and each item will have a cost associated with it. The player can select an item and purchase it using their score.
+
+##### gamepaly
+The Gameplay state is the main state of the game. This is where the player will control their character and try to survive against the enemy attacks. The Gameplay state will have a game world that the player can move around in. The player will use their weapons and other items they have purchased to fight off the enemies. The Gameplay state will also keep track of the player's health,score and power-ups.
+
+##### game over
+The GameOver state is the state the game will move to when the player dies. This state will display the player's score and give them the option to restart the game or go to the HighScore state.
+
+##### highscore
+The HighScore state will display the top scores of all the players who have played the game. The scores will be sorted in descending order, and the player's score will be highlighted. The HighScore state will also go back to the StartingScreen state.
+
 ### user input
 ### PPU communication
 ### APU communication
 ### level editing pipeline
+
+#### Background Sprites and Indexing
+Our game's background sprites are 16x16 pixels in size. Each sprite is represented as an index, with different indexes corresponding to colors from a color palette.
+
+#### Creating Tilemaps with Tiled
+To create tilemaps, we use Tiled - a software that takes in background sprites and indexes them to create a tilemap. The resulting level is exported as a CSV document containing the indexes for each tile. This CSV document is then converted into a binary file using a program written in c++, which can be read as a large 1D binary array. While this conversion is ideal for simulation and testing, it requires memory allocation to properly store and utilize the tilemap data on the STM32.
+
+#### Memory-Efficient Handling of Variable Tilemap Sizes
+For our game, tilemaps can vary in size. Our standard resolution is 320x240, which translates to a total of 20x15 tiles and 300 different tile values. However, levels can range from horizontal to vertical, and can consist of anywhere from 1200 to 3000 tile values or even more. To handle variable tilemap sizes and memory efficiency, we use a binary format to store the tilemap data on the STM32. By converting the CSV tilemap into binary, we reduce the amount of memory required to store the tilemap data. This is especially important for larger levels, which can contain thousands of tiles. Additionally, we allocate memory to store the tilemap data, ensuring that it is robust and memory effiecient.
 
 ## FPGA (PPU)
 ### PPU
