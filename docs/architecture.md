@@ -31,25 +31,22 @@ To ensure a smooth and enjoyable gaming experience, it is essential to address a
 
 ## STM32
 ### game engine
-### user input
+### User input
+
+
+
 ### PPU communication
+
+To comunicate with the FPGA via the STM32 a protocol is needed. After [research](research.md#Input) of different possible protocols, SPI was the best option for this problem. As there is only one master and one slave, four data lines are needed at maximum. The STM32 will be the master and the FPGA will be the slave. The STM32 has a configurable SPI module that is easily configurable unlike the FPGA. Futhermore, the MISO line is not needed because the FPGA does not send any big data to the STM32. The slave select line will operate as a write enable.
+
 ### APU communication
 ### level editing pipeline
-To create sprites the program to be used is aseprite, aseprite exports their
-sprite palette and puts them in our 2d map editor. For creating 2d levels were
-using Tiled as our 2d map editor. With this software, we can create and export
-our maps with our preferred technique. Indexed tilemaps are the technique we’re
-using to export our levels from the microcontroller to the FPGA.
 
-![Indexed color (above) and indexed tilemaps (below)](../assets/indexes.PNG)
-
-To index tiles from the tilemap, 10 bits will be used for both the foreground
-and background layers of the PPU. This means that the global tilemap can fit up
-to 1024 tiles in total, each being 16x16 pixels (the example uses 4x4 tiles for
-illustration purposes).
 ## FPGA (PPU)
 ### PPU
 ### SPI
+
+The FPGA will configure as a slave of the SPI protocol. THe FPGA (Basys3) does not have a IP-Core that supports external SPI communication so the SPI slave has to be designed. The module requires three inputs as mentioned before in the [STM32](architecture.md#STM32) section.  
 ### APU
 
 ## Screen
@@ -59,45 +56,18 @@ illustration purposes).
 # design document (mid-low level)
 ## STM32
 ### game engine
-
-
-#### game loop
-![Game loop](../assets/GameLoop.png)
-The game loop is the backbone of any game. It is responsible for managing the game states, updating the game world, handling user input, and rendering the graphics. The game loop consists of five states: StartingScreen, Shop, Gameplay, GameOver, and HighScore. Each state has its own set of rules and actions, and the game will move from one state to another based on the user input and game events.
-
-
-##### startingscreen
-The StartingScreen state is the first state the player encounters when they launch the game or go from highscore to startingscreen. It will display the game title and the start button. When the start button is pressed, the game will move to the Shop state.
-
-##### shop
-The Shop state is where the player can buy upgrades/power-ups. The player will use the score they earned during gameplay to purchase these items. The Shop state will have a list of items the player can buy, and each item will have a cost associated with it. The player can select an item and purchase it using their score.
-
-##### gamepaly
-The Gameplay state is the main state of the game. This is where the player will control their character and try to survive against the enemy attacks. The Gameplay state will have a game world that the player can move around in. The player will use their weapons and other items they have purchased to fight off the enemies. The Gameplay state will also keep track of the player's health,score and power-ups.
-
-##### game over
-The GameOver state is the state the game will move to when the player dies. This state will display the player's score and give them the option to restart the game or go to the HighScore state.
-
-##### highscore
-The HighScore state will display the top scores of all the players who have played the game. The scores will be sorted in descending order, and the player's score will be highlighted. The HighScore state will also go back to the StartingScreen state.
-
 ### user input
 ### PPU communication
+
+The SPI module will be configured that sends 8 bits per cycle and at a speed of 1.0 MB/s. The STM32 Cube IDE SPI module does not include a slave select line so a pin has to configured manually to fullfill this purpose. Every data transfer consists out of 4 times 8 bits, so 32 bits in total. The first byte is the address and the other 3 bytes consist the data.
 ### APU communication
 ### level editing pipeline
-
-#### Background Sprites and Indexing
-Our game's background sprites are 16x16 pixels in size. Each sprite is represented as an index, with different indexes corresponding to colors from a color palette.
-
-#### Creating Tilemaps with Tiled
-To create tilemaps, we use Tiled - a software that takes in background sprites and indexes them to create a tilemap. The resulting level is exported as a CSV document containing the indexes for each tile. This CSV document is then converted into a binary file using a program written in c++, which can be read as a large 1D binary array. While this conversion is ideal for simulation and testing, it requires memory allocation to properly store and utilize the tilemap data on the STM32.
-
-#### Memory-Efficient Handling of Variable Tilemap Sizes
-For our game, tilemaps can vary in size. Our standard resolution is 320x240, which translates to a total of 20x15 tiles and 300 different tile values. However, levels can range from horizontal to vertical, and can consist of anywhere from 1200 to 3000 tile values or even more. To handle variable tilemap sizes and memory efficiency, we use a binary format to store the tilemap data on the STM32. By converting the CSV tilemap into binary, we reduce the amount of memory required to store the tilemap data. This is especially important for larger levels, which can contain thousands of tiles. Additionally, we allocate memory to store the tilemap data, ensuring that it is robust and memory effiecient.
 
 ## FPGA (PPU)
 ### PPU
 ### SPI
+The FPGA uses 3 JMOD pins to receive the SPI data. The FPGA does not have a IP-Core for SPI. To receive the data the module has 3 synchronisers for the incoming SPI clock, data and slave select. The data will be read via the SPI protocol and shifted untill all 32 bits are read.   
+
 ### APU
 
 ## Screen
@@ -137,8 +107,6 @@ The microcontroller will process the game logic.
 For this reason the input will be handled by the microcontroller as this will improve playability (stated in research).
 
 The controller will have six buttons, so six data pins are needed on the microcontroller plus a ground and 3.3V or 5V pin.
-In total there are eight pins needed. 
-If the game is going to be played by 2 persons, there are six more data pins needed so 8 data pins for both controllers.
 For data transfer between STM32 and FPGA there are 4 pins needed at maximum (SPI for instance). 
 The STM32 will be used and most STM32 boards have enough I/O pins for our needs. 
 The STM32 F030 and F091 provided by Avans both have 15 digital pins and 6 analog pins.
